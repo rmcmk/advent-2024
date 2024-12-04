@@ -1,5 +1,4 @@
-use std::iter::Peekable;
-use std::str::Chars;
+use advent_2024::tokenizer::{Token, TokenMatch, Tokenizer};
 
 fn main() {
     p1();
@@ -68,104 +67,6 @@ where
     }
 
     total
-}
-
-enum TokenMatch<'a> {
-    Instruction(&'a str),
-    Symbol(char),
-    Number(i64),
-}
-
-enum Token<'a> {
-    Instruction(&'a str),
-    Symbol(char),
-    Number,
-}
-
-struct Tokenizer<'a> {
-    chars: Peekable<Chars<'a>>,
-}
-
-impl<'a> Tokenizer<'a> {
-    fn new(input: &'a str) -> Self {
-        Self {
-            chars: input.chars().peekable(),
-        }
-    }
-
-    fn skip(&mut self) {
-        self.chars.next();
-    }
-
-    fn has_next(&mut self) -> bool {
-        self.chars.peek().is_some()
-    }
-
-    fn next(&mut self, tokens: &[Token<'a>]) -> Option<Vec<TokenMatch<'a>>> {
-        let mut matches = Vec::new();
-        let mut chars_clone = self.chars.clone();
-
-        for token in tokens {
-            match token {
-                Token::Instruction(s) => {
-                    let mut temp = String::new();
-
-                    for _ in 0..s.len() {
-                        if let Some(ch) = chars_clone.next() {
-                            temp.push(ch);
-                        } else {
-                            return None;
-                        }
-                    }
-
-                    if temp == *s {
-                        matches.push(TokenMatch::Instruction(s));
-                    } else {
-                        return None;
-                    }
-                }
-
-                Token::Symbol(c) => {
-                    if let Some(&ch) = chars_clone.peek() {
-                        if ch == *c {
-                            chars_clone.next();
-                            matches.push(TokenMatch::Symbol(ch));
-                        } else {
-                            return None;
-                        }
-                    } else {
-                        return None;
-                    }
-                }
-
-                Token::Number => {
-                    let mut num_str = String::new();
-
-                    while let Some(&ch) = chars_clone.peek() {
-                        if ch.is_ascii_digit() {
-                            num_str.push(ch);
-                            chars_clone.next();
-                        } else {
-                            break;
-                        }
-                    }
-
-                    if !num_str.is_empty() {
-                        if let Ok(number) = num_str.parse::<i64>() {
-                            matches.push(TokenMatch::Number(number));
-                        } else {
-                            return None;
-                        }
-                    } else {
-                        return None;
-                    }
-                }
-            }
-        }
-
-        self.chars = chars_clone;
-        Some(matches)
-    }
 }
 
 fn parse_input<'a>() -> &'a str {
